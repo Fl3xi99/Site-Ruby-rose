@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ruby Rose</title>
+</head>
+<body>
+    <nav class="main-nav">
+         <a href="order.html">Order</a>
+         <a href="portofolio.html">Portofolio</a>
+         <a href="main.html"><img src="rr-logo.webp" style="width:222px;height:262px;"></a>
+         <a href="about-us.html">About Us</a>
+         <a href="catalog.html" class="active">Catalog</a>
+    </nav>
+
+    <main class="catalog">
+      <!-- Example Item -->
+      <div class="item-card">
+        <img src="t shirt1.png" alt="CUSTOM TSHIRT" style="width: 200px; height: 200px;">
+        <h2>Custom T Shirts</h2>
+        <p>T shirt with custom Image on it!</p>
+        <span class="price">$19.99</span>
+        <button onclick="buyProduct('custom-tshirt')">Buy Now</button>
+      </div>
+
+      <div class="item-card">
+        <img src="portefeulle1.png" alt="PORTEFEULLECORKGOLD" style="width: 200px; height: 200px;">
+        <h2>Portefeulle</h2>
+        <p>Selfmade Portefeulle with Cork GOLD Outside (Inside is choosable!)</p>
+        <span class="price">$29.99</span>
+        <button onclick="buyProduct('portefeulle')">Buy Now</button>
+      </div>
+
+      <!-- Add more items with buttons like this -->
+    </main>
+
+    <script>
+      async function buyProduct(product_id) {
+        try {
+          const response = await fetch('/.netlify/functions/create-checkout-session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ product_id })
+          });
+
+          const data = await response.json();
+
+          if (data.url) {
+            window.location.href = data.url;
+          } else {
+            alert('Error creating checkout session.');
+          }
+        } catch (error) {
+          console.error('Checkout error:', error);
+          alert('Something went wrong. Please try again.');
+        }
+      }
+    </script>
+</body>
+</html>
