@@ -1,45 +1,41 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
-const PRODUCTS = {
-  'custom-tshirt': {
-    name: 'Custom T Shirts',
-    price: 1999, // $19.99 in cents
-  },
-  'portefeulle': {
-    name: 'Portefeulle',
-    price: 2999, // $29.99 in cents
-  },
-};
-
 exports.handler = async (event) => {
-  try {
-    const { product_id } = JSON.parse(event.body);
-    const product = PRODUCTS[product_id];
+  // Parse the incoming request body
+  const { product_id } = JSON.parse(event.body || '{}');
 
-    if (!product) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ error: 'Invalid product ID' }),
-      };
+  // Map product_id to Stripe price IDs
+  const productMap = {
+    'custom-tshirt': {
+      price: 'price_1RZzGrEHGuwqtX444rKZwTj6', // 🔁 Replace with your actual Stripe Price ID
+      name: 'Custom T-Shirt'
+    },
+    'Portefeulle': {
+      price: 'price_1RZzGrEHGuwqtX444rKZwTj6', // 🔁 Replace with your actual Stripe Price ID
+      name: 'Portefeulle'
     }
+  };
 
+  const product = productMap[product_id];
+
+  if (!product) {
+    return {
+      statusCode: 400,
+      body: JSON.stringify({ error: 'Invalid product_id' }),
+    };
+  }
+
+  try {
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
       mode: 'payment',
       line_items: [
         {
-          price_data: {
-            currency: 'usd',
-            unit_amount: product.price,
-            product_data: {
-              name: product.name,
-            },
-          },
-          quantity: 1,
-        },
+          price: product.price,
+          quantity: 1
+        }
       ],
-      success_url: 'https://yourdomain.netlify.app/success',
-      cancel_url: 'https://yourdomain.netlify.app/cancel',
+      success_url: 'https://your-site-name.netlify.app/success.html',
+      cancel_url: 'https://your-site-name.netlify.app/cancel.html',
     });
 
     return {
@@ -47,10 +43,10 @@ exports.handler = async (event) => {
       body: JSON.stringify({ url: session.url }),
     };
   } catch (error) {
-    console.error('Stripe checkout error:', error);
+    console.error('Stripe error:', error.message);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: 'Server error' }),
+      body: JSON.stringify({ error: 'Checkout session creation failed.' }),
     };
   }
 };
